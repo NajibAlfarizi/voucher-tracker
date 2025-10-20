@@ -1,0 +1,121 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Master Data Voucher (Produk)
+model MasterVoucher {
+  id            Int                  @id @default(autoincrement())
+  operator      String
+  jenis_paket   String
+  stok_saat_ini Int                  @default(0) // Stock at this moment (for reference)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  transaksi     VoucherTransaction[]
+  dailyStocks   VoucherDailyStock[]
+
+  @@unique([operator, jenis_paket])
+}
+
+// Transaksi Voucher (Masuk/Keluar)
+model VoucherTransaction {
+  id         Int           @id @default(autoincrement())
+  voucher_id Int
+  voucher    MasterVoucher @relation(fields: [voucher_id], references: [id], onDelete: Cascade)
+  tanggal    DateTime      @default(now())
+  tipe       String // "masuk" atau "keluar"
+  jumlah     Int
+  keterangan String?
+  createdAt  DateTime      @default(now())
+}
+
+// Daily Stock Tracking for Voucher
+model VoucherDailyStock {
+  id         Int           @id @default(autoincrement())
+  voucher_id Int
+  voucher    MasterVoucher @relation(fields: [voucher_id], references: [id], onDelete: Cascade)
+  tanggal    DateTime // Date for this daily record
+  sisa       Int // Remaining stock at end of day (input)
+  terjual    Int // Sold = stok_awal + masuk - sisa (auto-calc, but stored for reporting)
+  stok_awal  Int // Stock at start of day (auto-calc)
+  masuk      Int // Stock added during the day (input)
+  catatan    String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@unique([voucher_id, tanggal])
+}
+
+// Master Data Wallet (Dompet)
+model MasterWallet {
+  id             Int                 @id @default(autoincrement())
+  nama_wallet    String              @unique
+  saldo_saat_ini Float               @default(0)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  transaksi      WalletTransaction[]
+  dailyStocks    WalletDailyStock[] // <-- Tambahkan ini
+}
+
+// Transaksi Wallet (Masuk/Keluar)
+model WalletTransaction {
+  id         Int          @id @default(autoincrement())
+  wallet_id  Int
+  wallet     MasterWallet @relation(fields: [wallet_id], references: [id], onDelete: Cascade)
+  tanggal    DateTime     @default(now())
+  tipe       String // "masuk" atau "keluar"
+  jumlah     Float
+  keterangan String?
+  createdAt  DateTime     @default(now())
+}
+
+// Operator Configuration
+model Operator {
+  id        Int      @id @default(autoincrement())
+  nama      String   @unique
+  kode      String   @unique
+  aktif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Wallet Type Configuration  
+model WalletType {
+  id        Int      @id @default(autoincrement())
+  nama      String   @unique
+  nomor_hp  String?
+  aktif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SaldoWallet {
+  id          Int      @id @default(autoincrement())
+  tanggal     DateTime
+  nama_wallet String
+  saldo_awal  Float
+  masuk       Float
+  keluar      Float
+  sisa        Float
+}
+
+// Wallet daily stock tracking (mirror of VoucherDailyStock)
+model WalletDailyStock {
+  id         Int          @id @default(autoincrement())
+  wallet_id  Int
+  wallet     MasterWallet @relation(fields: [wallet_id], references: [id], onDelete: Cascade)
+  tanggal    DateTime
+  saldo_awal Float
+  masuk      Float
+  keluar     Float
+  sisa       Float
+  catatan    String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@unique([wallet_id, tanggal])
+}

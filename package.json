@@ -1,0 +1,40 @@
+{
+  "name": "voucher-tracker",
+  "version": "1.0.0",
+  "description": "Aplikasi Pencatatan Harian Voucher Kuota & E-Wallet",
+  "type": "module",
+  "author": "Alfabyte",
+  "license": "MIT",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:nextjs\"",
+    "dev:server": "cd server && node server.js",
+    "dev:nextjs": "cd nextjs && npm run dev",
+    "build": "cd nextjs && npm run build",
+    "start": "concurrently \"npm run start:server\" \"npm run start:nextjs\"",
+    "start:server": "cd server && node server.js",
+    "start:nextjs": "cd nextjs && npm run start"
+  },
+  "keywords": [
+    "voucher",
+    "tracker",
+    "e-wallet",
+    "desktop-app"
+  ],
+  "dependencies": {
+    "@prisma/client": "^6.17.1",
+    "autoprefixer": "^10.4.21",
+    "concurrently": "^9.2.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "next": "^15.5.5",
+    "postcss": "^8.5.6",
+    "prisma": "^6.17.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tailwindcss": "^4.1.14"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  }
+}
